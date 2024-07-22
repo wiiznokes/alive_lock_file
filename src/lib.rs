@@ -117,19 +117,19 @@ impl LockFileState {
             .ok_or(anyhow!("no runtime dir"))?
             .join(name.as_ref());
 
-        match File::open(&path) {
-            Ok(_) => return Ok(LockFileState::AlreadyLocked),
-            Err(e) => {
-                if e.kind() != ErrorKind::NotFound {
-                    return Err(e.into());
-                }
-            }
-        };
-
         let parents = path.parent().ok_or(anyhow!("no parent directory"))?;
 
         std::fs::create_dir_all(parents)?;
-        _ = File::create(&path)?;
+
+        match File::create_new(&path) {
+            Ok(_) => {}
+            Err(e) => {
+                if e.kind() == ErrorKind::AlreadyExists {
+                    return Ok(LockFileState::AlreadyLocked);
+                }
+                return Err(e.into());
+            }
+        }
 
         FILE_PATHS.lock().unwrap().insert(path.clone());
 
