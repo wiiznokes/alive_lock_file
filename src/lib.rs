@@ -21,7 +21,7 @@ use std::{
     fs::{self, File},
     io::ErrorKind,
     mem::transmute,
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -39,13 +39,13 @@ pub enum LockFileError {
     Error(#[from] anyhow::Error),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LockFileState {
     Lock(Lock),
     AlreadyLocked,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Lock {
     path: PathBuf,
 }
@@ -102,6 +102,12 @@ impl LockFileState {
         FILE_PATHS.lock().unwrap().insert(path.clone());
 
         Ok(LockFileState::Lock(Lock { path }))
+    }
+}
+
+impl Lock {
+    pub fn path(&self) -> &Path {
+        &self.path
     }
 }
 
