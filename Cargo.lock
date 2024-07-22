@@ -10,7 +10,6 @@ dependencies = [
  "dirs",
  "lazy_static",
  "nix",
- "thiserror",
 ]
 
 [[package]]

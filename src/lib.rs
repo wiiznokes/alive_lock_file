@@ -27,17 +27,9 @@ use std::{
 
 use nix::sys::signal::{signal, SigHandler, Signal};
 
-use thiserror::Error;
-
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 
 use lazy_static::lazy_static;
-
-#[derive(Error, Debug)]
-pub enum LockFileError {
-    #[error(transparent)]
-    Error(#[from] anyhow::Error),
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LockFileState {
@@ -87,7 +79,7 @@ pub fn init_signals() {
 impl LockFileState {
     /// Try to acquire a lock. The name provided will be join the the runtime dir of the platform.
     /// On unix, it will be `$XDG_RUNTIME_DIR`.
-    pub fn try_lock<S: AsRef<str>>(name: S) -> Result<LockFileState, LockFileError> {
+    pub fn try_lock<S: AsRef<str>>(name: S) -> Result<LockFileState> {
         let path = dirs::runtime_dir()
             .ok_or(anyhow!("no runtime dir"))?
             .join(name.as_ref());
@@ -96,12 +88,15 @@ impl LockFileState {
             Ok(_) => return Ok(LockFileState::AlreadyLocked),
             Err(e) => {
                 if e.kind() != ErrorKind::NotFound {
-                    return Err(LockFileError::Error(e.into()));
+                    return Err(e.into());
                 }
             }
         };
 
-        _ = File::create(&path).map_err(|e| LockFileError::Error(e.into()))?;
+        let parents = path.parent().ok_or(anyhow!("no parent directory"))?;
+
+        std::fs::create_dir_all(parents)?;
+        _ = File::create(&path)?;
 
         FILE_PATHS.lock().unwrap().insert(path.clone());
 
