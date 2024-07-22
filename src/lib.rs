@@ -70,10 +70,41 @@ extern "C" fn handle_signal(sig: i32) {
 /// Intercept the `SIGINT` and `SIGTERM` signals.
 /// Be warned that custom signals handler defined by other crates will be overwritten.
 pub fn init_signals() {
-    unsafe {
-        signal(Signal::SIGINT, SigHandler::Handler(handle_signal)).unwrap();
-        signal(Signal::SIGTERM, SigHandler::Handler(handle_signal)).unwrap();
-    };
+    // chat gpt generated
+    let fatal_signals = [
+        Signal::SIGHUP,
+        Signal::SIGINT,
+        Signal::SIGQUIT,
+        Signal::SIGILL,
+        Signal::SIGABRT,
+        Signal::SIGBUS,
+        Signal::SIGFPE,
+        Signal::SIGKILL,
+        Signal::SIGSEGV,
+        Signal::SIGPIPE,
+        Signal::SIGALRM,
+        Signal::SIGTERM,
+        #[cfg(all(
+            any(linux_android, target_os = "emscripten", target_os = "fuchsia"),
+            not(any(
+                target_arch = "mips",
+                target_arch = "mips32r6",
+                target_arch = "mips64",
+                target_arch = "mips64r6",
+                target_arch = "sparc64"
+            ))
+        ))]
+        Signal::SIGSTKFLT,
+        Signal::SIGXCPU,
+        Signal::SIGXFSZ,
+        Signal::SIGSYS,
+    ];
+
+    for sig in fatal_signals {
+        unsafe {
+            signal(sig, SigHandler::Handler(handle_signal)).unwrap();
+        }
+    }
 }
 
 impl LockFileState {
