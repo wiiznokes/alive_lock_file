@@ -62,6 +62,8 @@ extern "C" fn handle_signal(sig: i32) {
 
     let signal_number = unsafe { transmute::<i32, nix::sys::signal::Signal>(sig) };
 
+    log::debug!("handle_signal: {:?}", signal_number);
+
     unsafe { signal(signal_number, SigHandler::SigDfl).unwrap() };
 
     unsafe { nix::libc::raise(sig) };
