@@ -102,6 +102,13 @@ impl LockFileState {
 
         Ok(LockFileState::Lock(Lock { path }))
     }
+
+    pub fn has_lock(&self) -> bool {
+        match self {
+            LockFileState::Lock(_) => true,
+            LockFileState::AlreadyLocked => false,
+        }
+    }
 }
 
 impl Lock {
