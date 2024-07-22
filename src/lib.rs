@@ -51,12 +51,17 @@ lazy_static! {
 extern "C" fn handle_signal(sig: i32) {
     match FILE_PATHS.try_lock() {
         Ok(path) => {
+            log::debug!("{:?}", path);
+
             for path in path.iter() {
-                _ = fs::remove_file(path);
+                if let Err(err) = fs::remove_file(path) {
+                    log::error!("can't remove lock file {}", err);
+                }
             }
         }
         Err(_) => {
-            // can't do much in this case
+            log::error!("can't get the lock");
+            
         }
     };
 
