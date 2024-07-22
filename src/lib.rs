@@ -25,7 +25,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use nix::sys::signal::{signal, SigHandler, Signal};
+use nix::{libc, sys::signal::{signal, SigHandler, Signal}};
 
 use anyhow::{anyhow, Result};
 
@@ -48,7 +48,7 @@ lazy_static! {
     static ref FILE_PATHS: Arc<Mutex<HashSet<PathBuf>>> = Arc::new(Mutex::new(HashSet::new()));
 }
 
-extern "C" fn handle_signal(sig: i32) {
+extern fn handle_signal(sig: libc::c_int) {
     match FILE_PATHS.try_lock() {
         Ok(path) => {
             log::debug!("{:?}", path);
