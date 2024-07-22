@@ -45,6 +45,8 @@ pub enum LockFileState {
     AlreadyLocked,
 }
 
+/// Represent a lock file. When this value is dropped, the corresponding lock file
+/// will be removed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Lock {
     path: PathBuf,
@@ -83,6 +85,8 @@ pub fn init_signals() {
 }
 
 impl LockFileState {
+    /// Try to acquire a lock. The name provided will be join the the runtime dir of the platform.
+    /// On unix, it will be `$XDG_RUNTIME_DIR`.
     pub fn try_lock<S: AsRef<str>>(name: S) -> Result<LockFileState, LockFileError> {
         let path = dirs::runtime_dir()
             .ok_or(anyhow!("no runtime dir"))?
@@ -106,6 +110,7 @@ impl LockFileState {
 }
 
 impl Lock {
+    /// Get the path of this lock file.
     pub fn path(&self) -> &Path {
         &self.path
     }

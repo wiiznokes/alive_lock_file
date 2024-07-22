@@ -4,11 +4,13 @@
 [![docs.rs](https://img.shields.io/badge/docs.rs-alive_lock_file-blue?style=flat-square&logo=docs.rs)](https://docs.rs/alive_lock_file)
 [![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
 
-A simple crate to create lock files without creating dead locks
+A simple crate to create lock files without creating dead locks. For that, is use 2 things:
+- join the provided path to the `$XDG_RUNTIME_DIR` env variable. This directory get cleanned automatically by the system, and is mount as a ramfs.
+- intercept signals
 
 ## Usage
 
-```rust
+```rs
 use alive_lock_file::{init_signals, LockFileState};
 
 fn main() {
