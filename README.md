@@ -4,7 +4,7 @@
 [![docs.rs](https://img.shields.io/badge/docs.rs-alive_lock_file-blue?style=flat-square&logo=docs.rs)](https://docs.rs/alive_lock_file)
 [![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
 
-A simple crate to create lock file without creating dead locks
+A simple crate to create lock files without creating dead locks
 
 ## Usage
 

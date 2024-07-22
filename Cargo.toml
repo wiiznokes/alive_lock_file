@@ -7,7 +7,7 @@ authors = ["wiiznokes <wiiznokes2@gmail.com>"]
 repository = "https://github.com/wiiznokes/alive_lock_file"
 keywords = ["deadlock", "filelock", "lock", "lockfile"]
 description = """
-A simple crate to create lock file without creating dead locks
+A simple crate to create lock files without creating dead locks
 """
 
 [dependencies]

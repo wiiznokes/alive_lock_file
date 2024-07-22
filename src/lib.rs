@@ -1,4 +1,4 @@
-//! A simple crate to create lock file without creating dead locks
+//! A simple crate to create lock files without creating dead locks
 //!
 //! ```rs
 //! use alive_lock_file::{init_signals, LockFileState};
