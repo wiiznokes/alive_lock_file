@@ -91,17 +91,6 @@ pub fn init_signals() {
         Signal::SIGPIPE,
         Signal::SIGALRM,
         Signal::SIGTERM,
-        #[cfg(all(
-            any(linux_android, target_os = "emscripten", target_os = "fuchsia"),
-            not(any(
-                target_arch = "mips",
-                target_arch = "mips32r6",
-                target_arch = "mips64",
-                target_arch = "mips64r6",
-                target_arch = "sparc64"
-            ))
-        ))]
-        Signal::SIGSTKFLT,
         Signal::SIGXCPU,
         Signal::SIGXFSZ,
         Signal::SIGSYS,
