@@ -1,12 +1,9 @@
 //! A simple crate to create lock files without creating dead locks
 //!
 //! ```rs
-//! use alive_lock_file::{init_signals, LockFileState};
+//! use alive_lock_file::LockFileState;
 //!
 //! fn main() {
-//!     // intercept the `SIGINT` and `SIGTERM` signals.
-//!     init_signals();
-//!
 //!     match LockFileState::try_lock("file.lock").unwrap() {
 //!         LockFileState::Lock(_lock) => {
 //!             // while _lock is in scope, `file.lock` will not be removed
@@ -20,16 +17,11 @@ use std::{
     collections::HashSet,
     fs::{self, File},
     io::ErrorKind,
-    mem::transmute,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{LazyLock, Mutex},
 };
 
-use nix::{libc, sys::signal::{signal, SigHandler, Signal}};
-
 use anyhow::{anyhow, Result};
-
-use lazy_static::lazy_static;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LockFileState {
@@ -44,64 +36,7 @@ pub struct Lock {
     path: PathBuf,
 }
 
-lazy_static! {
-    static ref FILE_PATHS: Arc<Mutex<HashSet<PathBuf>>> = Arc::new(Mutex::new(HashSet::new()));
-}
-
-extern fn handle_signal(sig: libc::c_int) {
-    match FILE_PATHS.try_lock() {
-        Ok(path) => {
-            log::debug!("{:?}", path);
-
-            for path in path.iter() {
-                if let Err(err) = fs::remove_file(path) {
-                    log::error!("can't remove lock file {}", err);
-                }
-            }
-        }
-        Err(_) => {
-            log::error!("can't get the lock");
-            
-        }
-    };
-
-    let signal_number = unsafe { transmute::<i32, nix::sys::signal::Signal>(sig) };
-
-    log::debug!("handle_signal: {:?}", signal_number);
-
-    unsafe { signal(signal_number, SigHandler::SigDfl).unwrap() };
-
-    unsafe { nix::libc::raise(sig) };
-}
-
-/// Intercept the `SIGINT` and `SIGTERM` signals.
-/// Be warned that custom signals handler defined by other crates will be overwritten.
-pub fn init_signals() {
-    // chat gpt generated
-    let fatal_signals = [
-        Signal::SIGHUP,
-        Signal::SIGINT,
-        Signal::SIGQUIT,
-        Signal::SIGILL,
-        Signal::SIGABRT,
-        Signal::SIGBUS,
-        Signal::SIGFPE,
-        Signal::SIGKILL,
-        Signal::SIGSEGV,
-        Signal::SIGPIPE,
-        Signal::SIGALRM,
-        Signal::SIGTERM,
-        Signal::SIGXCPU,
-        Signal::SIGXFSZ,
-        Signal::SIGSYS,
-    ];
-
-    for sig in fatal_signals {
-        unsafe {
-            signal(sig, SigHandler::Handler(handle_signal)).unwrap();
-        }
-    }
-}
+static FILE_PATHS: LazyLock<Mutex<HashSet<PathBuf>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 impl LockFileState {
     /// Try to acquire a lock. The name provided will be join the the runtime dir of the platform.
