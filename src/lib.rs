@@ -88,6 +88,10 @@ impl Drop for Lock {
 }
 
 fn get_lock_path(name: &str) -> Result<PathBuf> {
+    if name.starts_with('/') {
+        return Ok(PathBuf::from(name));
+    }
+
     let path = dirs::runtime_dir()
         .ok_or(anyhow!("no runtime dir"))?
         .join(name);
